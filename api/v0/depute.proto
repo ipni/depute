@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option go_package = "github.com/ipni/depute/api/v0;depute";
+package ipni.depute.v0;
+
+message Link {
+  bytes value = 1;
+}
+
+message Multihash {
+  bytes value = 1;
+}
+
+message Advertisement {
+  Link ID = 1;
+  optional  Link entries = 2;
+  optional bytes    context_id = 3;
+  optional bytes    metadata = 4;
+  bool removed = 5;
+}
+
+message NotifyContent {
+  message Request {
+    Multihash multihash = 1;
+  }
+  message Response {
+    Link link = 1;
+  }
+}
+
+message Publish {
+  message Request {
+    Advertisement advertisement = 1;
+  }
+  message Response {
+    Link link = 1;
+  }
+}
+
+service Publisher {
+  rpc NotifyContent (stream NotifyContent.Request) returns (NotifyContent.Response);
+  rpc Publish (Publish.Request) returns (Publish.Response);
+}

@@ -13,7 +13,7 @@ $ go install github.com/ipni/depute/cmd/depute@latest
 ## Usage
 
 ```shell
-$ depute 
+$ depute -h 
 Usage of depute:
   -grpcListenAddr string
         The gRPC server listen address. (default "0.0.0.0:40080")
@@ -28,7 +28,7 @@ Usage of depute:
   -logLevel string
         The logging level. Only applied if GOLOG_LOG_LEVEL environment variable is unset. (default "info")
   -retrievalAddrs string
-        The comma separated retrieval multiaddrs to advertise. If libp2p host listen addrs are used.
+        The comma separated retrieval multiaddrs to advertise. If unspecified, libp2p host listen addrs are used.
 ```
 
 ### Run Server Locally

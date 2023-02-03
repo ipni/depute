@@ -1,5 +1,7 @@
 # :tophat: depute
 
+[![Go Test](https://github.com/ipni/depute/actions/workflows/go-test.yml/badge.svg)](https://github.com/ipni/depute/actions/workflows/go-test.yml)
+
 A gRPC service to advertise content addressable data onto IPNI.
 
 ## Install

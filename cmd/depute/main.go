@@ -25,7 +25,7 @@ const (
 func main() {
 	libp2pIdentityPath := flag.String("libp2pIdentityPath", "", "The path to the marshalled libp2p host identity. If unspecified a random identity is generated.")
 	libp2pListenAddrs := flag.String("libp2pListenAddrs", "", "The comma separated libp2p host listen addrs. If unspecified the default listen addrs are used at ephemeral port.")
-	retrievalAddrs := flag.String("retrievalAddrs", "", "The comma separated retrieval multiaddrs to advertise. If libp2p host listen addrs are used.")
+	retrievalAddrs := flag.String("retrievalAddrs", "", "The comma separated retrieval multiaddrs to advertise. If unspecified, libp2p host listen addrs are used.")
 	grpcListenAddr := flag.String("grpcListenAddr", "0.0.0.0:40080", "The gRPC server listen address.")
 	grpcTlsCertPath := flag.String("grpcTlsCertPath", "", "The path to gRPC server TLS Certificate.")
 	grpcTlsKeyPath := flag.String("grpcTlsKeyPath", "", "The path to gRPC server TLS Key.")

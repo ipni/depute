@@ -1,6 +1,6 @@
 module github.com/ipni/depute
 
-go 1.19
+go 1.20
 
 require (
 	github.com/gogo/status v1.1.0

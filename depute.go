@@ -2,6 +2,7 @@ package depute
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/gogo/status"
@@ -12,8 +13,11 @@ import (
 	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	depute "github.com/ipni/depute/api/v0"
+	"github.com/ipni/go-libipni/announce"
+	"github.com/ipni/go-libipni/announce/httpsender"
+	"github.com/ipni/go-libipni/announce/p2psender"
+	"github.com/ipni/go-libipni/ingest/schema"
 	"github.com/ipni/index-provider/engine/chunker"
-	"github.com/ipni/storetheindex/api/v0/ingest/schema"
 	"github.com/multiformats/go-multicodec"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -39,6 +43,7 @@ var (
 type Depute struct {
 	*options
 	chunker *chunker.ChainChunker
+	senders []announce.Sender
 	server  *grpc.Server
 }
 
@@ -47,8 +52,31 @@ func New(o ...Option) (*Depute, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	var senders []announce.Sender
+	if opts.h != nil && len(opts.publishAddrs) != 0 {
+		if !opts.noPubsubAnnounce {
+			// Create an announce sender to send over gossip pubsub.
+			p2pSender, err := p2psender.New(opts.h, opts.pubTopicName)
+			if err != nil {
+				return nil, fmt.Errorf("cannot create p2p pubsub announce sender: %w", err)
+			}
+			senders = append(senders, p2pSender)
+			logger.Info("Pubsub announcements enabled")
+		}
+		if len(opts.announceToURLs) != 0 {
+			httpSender, err := httpsender.New(opts.announceToURLs, opts.h.ID())
+			if err != nil {
+				return nil, fmt.Errorf("cannot create http announce sender: %w", err)
+			}
+			senders = append(senders, httpSender)
+			logger.Info("Http announcements enabled")
+		}
+	}
+
 	return &Depute{
 		options: opts,
+		senders: senders,
 		server:  grpc.NewServer(opts.grpcServerOpts...),
 	}, nil
 }
@@ -112,6 +140,8 @@ func (d *Depute) Publish(ctx context.Context, req *depute.Publish_Request) (*dep
 		logger.Errorw("Failed to set latest ad link", "link", link.String(), "err", err)
 		return nil, status.Errorf(codes.Internal, "failed to set latest ad link: %v", err)
 	}
+	adCid := link.(cidlink.Link).Cid
+	announce.Send(ctx, adCid, d.publishAddrs, d.senders...)
 	logger.Infow("Published advertisement", "link", link.String())
 	var l depute.Link
 	if err := l.Marshal(link); err != nil {

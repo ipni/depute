@@ -9,8 +9,8 @@ import (
 	"github.com/ipld/go-ipld-prime"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/storage/dsadapter"
-	"github.com/ipni/storetheindex/dagsync"
-	"github.com/ipni/storetheindex/dagsync/dtsync"
+	"github.com/ipni/go-libipni/dagsync"
+	"github.com/ipni/go-libipni/dagsync/ipnisync"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/multiformats/go-multiaddr"
@@ -67,8 +67,11 @@ func newOptions(o ...Option) (*options, error) {
 		}
 	}
 	if opts.publisher == nil {
-		pds := namespace.Wrap(opts.ds, datastore.NewKey("pub"))
-		opts.publisher, err = dtsync.NewPublisher(opts.h, pds, *opts.ls, "/indexer/ingest/mainnet")
+		privKey := opts.h.Peerstore().PrivKey(opts.h.ID())
+		opts.publisher, err = ipnisync.NewPublisher(*opts.ls, privKey,
+			ipnisync.WithStreamHost(opts.h),
+			ipnisync.WithHeadTopic("/indexer/ingest/mainnet"),
+		)
 		if err != nil {
 			return nil, err
 		}

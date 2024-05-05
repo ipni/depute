@@ -64,8 +64,8 @@ func New(o ...Option) (*Depute, error) {
 			senders = append(senders, p2pSender)
 			logger.Info("Pubsub announcements enabled")
 		}
-		if len(opts.announceToURLs) != 0 {
-			httpSender, err := httpsender.New(opts.announceToURLs, opts.h.ID())
+		if len(opts.directAnnounceURLs) != 0 {
+			httpSender, err := httpsender.New(opts.directAnnounceURLs, opts.h.ID())
 			if err != nil {
 				return nil, fmt.Errorf("cannot create http announce sender: %w", err)
 			}

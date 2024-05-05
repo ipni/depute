@@ -18,13 +18,15 @@ import (
 	"google.golang.org/grpc"
 )
 
+const DefaultTopic = "/indexer/ingest/mainnet"
+
 type (
 	Option  func(*options) error
 	options struct {
-		announceToURLs   []*url.URL
-		httpListenAddr   string
-		noPubsubAnnounce bool
-		publishAddrs     []multiaddr.Multiaddr
+		directAnnounceURLs []*url.URL
+		httpListenAddr     string
+		noPubsubAnnounce   bool
+		publishAddrs       []multiaddr.Multiaddr
 
 		ds             datastore.Batching
 		grpcListenAddr string
@@ -40,7 +42,7 @@ type (
 func newOptions(o ...Option) (*options, error) {
 	opts := options{
 		grpcListenAddr: "0.0.0.0:40080",
-		pubTopicName:   "/indexer/ingest/mainnet",
+		pubTopicName:   DefaultTopic,
 	}
 	for _, apply := range o {
 		if err := apply(&opts); err != nil {
@@ -86,9 +88,11 @@ func newOptions(o ...Option) (*options, error) {
 			return nil, err
 		}
 	}
-	if opts.noPubsubAnnounce && len(opts.announceToURLs) == 0 {
-		// No pubsub or HTTP announcements, so no publication to announce.
+	if opts.noPubsubAnnounce && len(opts.directAnnounceURLs) == 0 {
+		// No way to send announcements (pubsub or HTTP), so no publication
+		// addrs to announce.
 		opts.publishAddrs = nil
+		logger.Info("Not sending pubsub or direct HTTP announcements")
 	} else if len(opts.publishAddrs) == 0 {
 		opts.publishAddrs = append(opts.publishAddrs, opts.publisher.Addrs()...)
 		logger.Warn("No advertisement publication address to put into announcements. Using publisher host addresses, but external address may be needed.", "addrs", opts.publishAddrs)
@@ -97,26 +101,32 @@ func newOptions(o ...Option) (*options, error) {
 	return &opts, nil
 }
 
-// WithAnnounceToURLs sets URLs of indexers to send direct HTTP
+// WithDirectAnnounceURLs sets URLs of indexers to send direct HTTP
 // announcements to.
-func WithAnnounceToURLs(urls []string) Option {
+func WithDirectAnnounceURLs(urls []string) Option {
 	return func(o *options) error {
 		for _, ustr := range urls {
 			u, err := url.Parse(ustr)
 			if err != nil {
 				return err
 			}
-			o.announceToURLs = append(o.announceToURLs, u)
+			o.directAnnounceURLs = append(o.directAnnounceURLs, u)
 		}
 		return nil
 	}
 }
 
 // WithPublishAddrs sets the addresses put into announcements to tell indexers
-// where to get the advertisements.
-func WithPublishAddrs(addrs []multiaddr.Multiaddr) Option {
+// where to get the advertisements. Addresses are multiaddr strings.
+func WithPublishAddrs(addrs []string) Option {
 	return func(o *options) error {
-		o.publishAddrs = addrs
+		for _, addr := range addrs {
+			maddr, err := multiaddr.NewMultiaddr(addr)
+			if err != nil {
+				return fmt.Errorf("bad publisher address %s: %s", addr, err)
+			}
+			o.publishAddrs = append(o.publishAddrs, maddr)
+		}
 		return nil
 	}
 }
@@ -152,9 +162,12 @@ func WithPublisher(publisher dagsync.Publisher) Option {
 	}
 }
 
+// WithPublishTopic sets the topic that pubsub messages are send on.
 func WithPublishTopic(topicName string) Option {
 	return func(o *options) error {
-		o.pubTopicName = topicName
+		if topicName != "" {
+			o.pubTopicName = topicName
+		}
 		return nil
 	}
 }

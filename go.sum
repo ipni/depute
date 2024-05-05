@@ -208,8 +208,6 @@ github.com/ipld/go-ipld-adl-hamt v0.0.0-20220616142416-9004dbd839e0 h1:QAI/Ridj0
 github.com/ipld/go-ipld-adl-hamt v0.0.0-20220616142416-9004dbd839e0/go.mod h1:odxGcpiQZLzP5+yGu84Ljo8y3EzCvNAQKEodHNsHLXA=
 github.com/ipld/go-ipld-prime v0.21.0 h1:n4JmcpOlPDIxBcY037SVfpd1G+Sj1nKZah0m6QH9C2E=
 github.com/ipld/go-ipld-prime v0.21.0/go.mod h1:3RLqy//ERg/y5oShXXdx5YIp50cFGOanyMctpPjsvxQ=
-github.com/ipld/go-ipld-prime/storage/dsadapter v0.0.0-20230102063945-1a409dc236dd h1:qdjo1CRvAQhOMoyYjPnbdZ5rYFFmqztweQ9KAsuWpO0=
-github.com/ipld/go-ipld-prime/storage/dsadapter v0.0.0-20230102063945-1a409dc236dd/go.mod h1:9DD/GM0JNPoisgR09F62kbBi7kHa4eDIea4XshXYOVc=
 github.com/ipld/go-ipld-prime/storage/dsadapter v0.0.0-20240322071758-198d7dba8fb8 h1:Oiw+mWOGAWgP+Oo+EChX8j9/hhJmDAjzHFL8lyqdbs4=
 github.com/ipld/go-ipld-prime/storage/dsadapter v0.0.0-20240322071758-198d7dba8fb8/go.mod h1:+FsRW6VJ2E+bvJhsV0ZZf4oe1gC00XU+OSVg8ort6AQ=
 github.com/ipni/go-libipni v0.6.5 h1:vYbBc65nQYksZu8/olgn+a+eRd1KPNgthyHy92+7EfY=

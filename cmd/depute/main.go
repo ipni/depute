@@ -22,14 +22,33 @@ const (
 	libp2pUserAgent = "ipni/depute"
 )
 
+type arrayFlags []string
+
+func (a *arrayFlags) String() string {
+	return strings.Join(*a, ", ")
+}
+
+func (a *arrayFlags) Set(value string) error {
+	*a = append(*a, value)
+	return nil
+}
+
 func main() {
-	libp2pIdentityPath := flag.String("libp2pIdentityPath", "", "The path to the marshalled libp2p host identity. If unspecified a random identity is generated.")
-	libp2pListenAddrs := flag.String("libp2pListenAddrs", "", "The comma separated libp2p host listen addrs. If unspecified the default listen addrs are used at ephemeral port.")
-	retrievalAddrs := flag.String("retrievalAddrs", "", "The comma separated retrieval multiaddrs to advertise. If unspecified, libp2p host listen addrs are used.")
+	httpListenAddr := flag.String("httpListenAddr", "", "Address to listen on for publishing advertisements over HTTP.")
+	var directAnnounceURLs arrayFlags
+	flag.Var(&directAnnounceURLs, "directAnnounceURL", "Indexer URL to send direct http announcement to. Multiple OK")
+	var pubAddrs arrayFlags
+	flag.Var(&pubAddrs, "pubAddr", "Address to tell indexer where to retrieve advertisements. Multiple OK")
+
+	noPubsub := flag.Bool("noPubsub", false, "Disable pubsub announcements of new advertisements.")
+	libp2pIdentityPath := flag.String("libp2pIdentityPath", "", "Path to the marshalled libp2p host identity. If unspecified a random identity is generated.")
+	libp2pListenAddrs := flag.String("libp2pListenAddrs", "", "Comma separated libp2p host listen addrs. If unspecified the default listen addrs are used at ephemeral port.")
+	retrievalAddrs := flag.String("retrievalAddrs", "", "Comma separated retrieval multiaddrs to advertise. If unspecified, libp2p host listen addrs are used.")
 	grpcListenAddr := flag.String("grpcListenAddr", "0.0.0.0:40080", "The gRPC server listen address.")
-	grpcTlsCertPath := flag.String("grpcTlsCertPath", "", "The path to gRPC server TLS Certificate.")
-	grpcTlsKeyPath := flag.String("grpcTlsKeyPath", "", "The path to gRPC server TLS Key.")
-	logLevel := flag.String("logLevel", "info", "The logging level. Only applied if GOLOG_LOG_LEVEL environment variable is unset.")
+	grpcTlsCertPath := flag.String("grpcTlsCertPath", "", "Path to gRPC server TLS Certificate.")
+	grpcTlsKeyPath := flag.String("grpcTlsKeyPath", "", "Path to gRPC server TLS Key.")
+	logLevel := flag.String("logLevel", "info", "Logging level. Only applied if GOLOG_LOG_LEVEL environment variable is unset.")
+	topic := flag.String("topic", depute.DefaultTopic, "Sets the topic that pubsub messages are send on.")
 	flag.Parse()
 
 	if _, set := os.LookupEnv("GOLOG_LOG_LEVEL"); !set {
@@ -68,6 +87,17 @@ func main() {
 	if *retrievalAddrs != "" {
 		rAddrs := strings.Split(*libp2pListenAddrs, ",")
 		deputeOpts = append(deputeOpts, depute.WithRetrievalAddrs(rAddrs...))
+	}
+	deputeOpts = append(deputeOpts, depute.WithHttpListenAddr(*httpListenAddr))
+	if *noPubsub {
+		deputeOpts = append(deputeOpts, depute.WithNoPubsubAnnounce())
+	}
+	deputeOpts = append(deputeOpts, depute.WithPublishTopic(*topic))
+	if len(directAnnounceURLs) != 0 {
+		deputeOpts = append(deputeOpts, depute.WithDirectAnnounceURLs(directAnnounceURLs))
+	}
+	if len(pubAddrs) != 0 {
+		deputeOpts = append(deputeOpts, depute.WithPublishAddrs(pubAddrs))
 	}
 
 	var gsOpts []grpc.ServerOption

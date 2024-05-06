@@ -17,20 +17,31 @@ $ go install github.com/ipni/depute/cmd/depute@latest
 ```shell
 $ depute -h 
 Usage of depute:
+Usage of ./depute:
+  -directAnnounceURL value
+    	Indexer URL to send direct http announcement to. Multiple OK
   -grpcListenAddr string
-        The gRPC server listen address. (default "0.0.0.0:40080")
+    	The gRPC server listen address. (default "0.0.0.0:40080")
   -grpcTlsCertPath string
-        The path to gRPC server TLS Certificate.
+    	Path to gRPC server TLS Certificate.
   -grpcTlsKeyPath string
-        The path to gRPC server TLS Key.
+    	Path to gRPC server TLS Key.
+  -httpListenAddr string
+    	Address to listen on for publishing advertisements over HTTP.
   -libp2pIdentityPath string
-        The path to the marshalled libp2p host identity. If unspecified a random identity is generated.
+    	Path to the marshalled libp2p host identity. If unspecified a random identity is generated.
   -libp2pListenAddrs string
-        The comma separated libp2p host listen addrs. If unspecified the default listen addrs are used at ephemeral port.
+    	Comma separated libp2p host listen addrs. If unspecified the default listen addrs are used at ephemeral port.
   -logLevel string
-        The logging level. Only applied if GOLOG_LOG_LEVEL environment variable is unset. (default "info")
+    	Logging level. Only applied if GOLOG_LOG_LEVEL environment variable is unset. (default "info")
+  -noPubsub
+    	Disable pubsub announcements of new advertisements.
+  -pubAddr value
+    	Address to tell indexer where to retrieve advertisements. Multiple OK
   -retrievalAddrs string
-        The comma separated retrieval multiaddrs to advertise. If unspecified, libp2p host listen addrs are used.
+    	Comma separated retrieval multiaddrs to advertise. If unspecified, libp2p host listen addrs are used.
+  -topic string
+    	Sets the topic that pubsub messages are send on. (default "/indexer/ingest/mainnet")
 ```
 
 ### Run Server Locally
